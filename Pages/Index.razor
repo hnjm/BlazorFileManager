@@ -1,0 +1,50 @@
+﻿@page "/"
+@inject IJSRuntime jsRuntime
+
+@using Syncfusion.Blazor.FileManager;
+@using Syncfusion.Blazor.Popups;
+@using Syncfusion.Blazor.Buttons;
+
+
+<h3>Files</h3>
+
+<div class="col-12 row" style="margin-bottom: 10px;">
+    <label class="control-label">Select client folder</label>
+    <select class="form-control" @onchange="OnClientChange">
+        @foreach (var client in TestClients)
+        {
+            <option value="@client">@client</option>
+        }
+    </select>
+</div>
+
+<SfFileManager TValue="FileManagerDirectoryContent" @ref="FileManager">
+    <FileManagerEvents TValue="FileManagerDirectoryContent" OnSend="OnSend"></FileManagerEvents>
+    <FileManagerAjaxSettings Url="/api/FileManager/FileOperations"
+                             DownloadUrl="/api/FileManager/Download"
+                             UploadUrl="/api/FileManager/Upload">
+    </FileManagerAjaxSettings>
+</SfFileManager>
+
+@code {
+    SfFileManager<FileManagerDirectoryContent>? FileManager;
+    string ClientName = string.Empty;
+    List<string> TestClients = new List<string> { "Client1", "Client2" };
+
+    protected void OnSend(BeforeSendEventArgs args)
+    {
+        var data = new Dictionary<string, object>();
+        var client = string.IsNullOrEmpty(ClientName) ? TestClients[0] : ClientName;
+
+        data.Add("client", client);
+        data.Add("role", "Administrator");
+        args.CustomData = data;
+
+    }
+
+    public void OnClientChange(ChangeEventArgs e)
+    {
+        ClientName = e.Value.ToString();
+        FileManager.RefreshFilesAsync();
+    }
+}
